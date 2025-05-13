@@ -7,13 +7,14 @@ let timer = 0;
 let timerInterval;
 let flipDelay = 1000;
 
-let initialTimer = 0; // Store the initial timer value based on difficulty
+let initialTimer = 0;
 let currentGameMode = 'classic';
-let currentDifficulty = 'easy'; // Default to easy
+let currentDifficulty = 'easy';
 let soundEnabled = false;
 let vibrationEnabled = false;
+let gameHasEnded = false;
 
-let backgroundMusic = new Audio('https://example.com/background-music.mp3'); // Replace with a real URL
+let backgroundMusic = new Audio('https://example.com/background-music.mp3');
 backgroundMusic.loop = true;
 
 const gameModes = {
@@ -28,6 +29,7 @@ function initializeGame() {
     const gameContainer = document.getElementById('gameContainer');
     if (!gameContainer) return;
 
+    gameContainer.innerHTML = '';
     cards = [...emojis, ...emojis]
         .sort(() => Math.random() - 0.5)
         .map((emoji, index) => ({
@@ -37,12 +39,12 @@ function initializeGame() {
             isMatched: false
         }));
 
-    gameContainer.innerHTML = '';
     cards.forEach(card => {
         const cardElement = document.createElement('div');
         cardElement.className = 'card';
         cardElement.dataset.id = card.id;
         cardElement.onclick = () => flipCard(card.id);
+        cardElement.style.visibility = 'hidden';
         gameContainer.appendChild(cardElement);
     });
 
@@ -54,34 +56,42 @@ function initializeGame() {
 }
 
 function toggleDifficulty(mode) {
-    // Loop through all game-mode wrappers
     const modeWrappers = document.querySelectorAll('.game-mode-wrapper');
-    modeWrappers.forEach(wrapper => {
-        // Check if this wrapper contains the clicked mode
-        if (wrapper.querySelector(`#${mode}-difficulty`)) {
-            wrapper.style.display = 'block'; // Keep the selected mode visible
-        } else {
-            wrapper.style.display = 'none'; // Hide others
-        }
-    });
-
-    // Hide all difficulty sections first
     const difficultySections = document.querySelectorAll('.difficulty-options');
-    difficultySections.forEach(section => {
-        section.style.display = 'none';
-    });
 
-    // Show the selected difficulty section
+    // Check if difficulty options are already visible for the selected mode
     const selectedDifficulty = document.getElementById(`${mode}-difficulty`);
-    if (selectedDifficulty) {
+    const isDifficultyVisible = selectedDifficulty && selectedDifficulty.style.display === 'block';
+
+    // If difficulty options are visible, hide them and show all game modes
+    if (isDifficultyVisible) {
+        selectedDifficulty.style.display = 'none';
+        modeWrappers.forEach(wrapper => {
+            wrapper.style.display = 'block';
+        });
+    } else {
+        // Hide all difficulty options and show all game modes
+        difficultySections.forEach(section => {
+            section.style.display = 'none';
+        });
+        modeWrappers.forEach(wrapper => {
+            wrapper.style.display = 'none';
+        });
+
+        // Show the difficulty options for the selected mode
         selectedDifficulty.style.display = 'block';
     }
 }
 
 
+
+
+
 function startGame(mode, difficulty) {
+    gameHasEnded = false;
     currentGameMode = mode;
-    currentDifficulty = difficulty; // Store the difficulty for later use
+    currentDifficulty = difficulty;
+
     const landing = document.getElementById('landing-page');
     const game = document.getElementById('game-page');
     if (!landing || !game) return;
@@ -103,27 +113,65 @@ function startGame(mode, difficulty) {
         case 'easy':
             emojis = emojis.slice(0, 4);
             flipDelay = 1000;
-            initialTimer = 30; // Easy mode, 30 seconds countdown for time trial
+            initialTimer = 30;
             break;
         case 'medium':
             emojis = emojis.slice(0, 6);
             flipDelay = 1000;
-            initialTimer = 40; // Medium mode, 40 seconds countdown for time trial
+            initialTimer = 40;
             break;
         case 'hard':
             emojis = emojis.slice(0, 8);
             flipDelay = 1000;
-            initialTimer = 50; // Hard mode, 50 seconds countdown for time trial
+            initialTimer = 50;
             break;
         case 'extreme':
             emojis = emojis.slice(0, 8);
             flipDelay = 500;
-            initialTimer = 60; // Extreme mode, 60 seconds countdown for time trial
+            initialTimer = 60;
             break;
     }
 
-    timer = currentGameMode === 'time-trial' ? initialTimer : 0; // Time-trial starts from countdown, others start from 0
-    initializeGame();
+    timer = currentGameMode === 'time-trial' ? initialTimer : 0;
+
+    showCountdown(() => {
+        // Callback already handled inside showCountdown
+    });
+}
+
+function showCountdown(callback) {
+    const overlay = document.getElementById('countdown-overlay');
+    const text = document.getElementById('countdown-text');
+    if (!overlay || !text) return;
+
+    let count = 3;
+    overlay.style.display = 'flex';
+    text.textContent = count;
+
+    const countdownInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+            text.textContent = count;
+        } else if (count === 0) {
+            text.textContent = "GO!";
+        } else {
+            clearInterval(countdownInterval);
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                initializeGame();
+                revealCards();
+                if (typeof callback === 'function') callback();
+            }, 500);
+        }
+    }, 1000);
+}
+
+function revealCards() {
+    const gameContainer = document.getElementById('gameContainer');
+    const allCards = gameContainer.querySelectorAll('.card');
+    allCards.forEach(card => {
+        card.style.visibility = 'visible';
+    });
 }
 
 function backToMenu() {
@@ -131,45 +179,34 @@ function backToMenu() {
     const landingPage = document.getElementById('landing-page');
 
     if (gamePage.style.display === 'block') {
-        const userConfirmation = confirm("Are you sure you want to end the game?");
-        if (userConfirmation) {
-            endGameEarly("Game Over!");
-
-            setTimeout(() => {
-                landingPage.style.display = 'block';
-                gamePage.style.display = 'none';
-                clearInterval(timerInterval);
-
-                // Restore all game mode buttons
-                const modeWrappers = document.querySelectorAll('.game-mode-wrapper');
-                modeWrappers.forEach(wrapper => {
-                    wrapper.style.display = 'block';
-                });
-
-                // Hide all difficulty buttons
-                const difficultySections = document.querySelectorAll('.difficulty-options');
-                difficultySections.forEach(section => {
-                    section.style.display = 'none';
-                });
-            }, 2000);
+        if (gameHasEnded) {
+            landingPage.style.display = 'block';
+            gamePage.style.display = 'none';
+            clearInterval(timerInterval);
+        } else {
+            const userConfirmation = confirm("Are you sure you want to end the game?");
+            if (userConfirmation) {
+                endGameEarly("Game Over!");
+                setTimeout(() => {
+                    landingPage.style.display = 'block';
+                    gamePage.style.display = 'none';
+                    clearInterval(timerInterval);
+                }, 2000);
+            } else {
+                return;
+            }
         }
+
+        const modeWrappers = document.querySelectorAll('.game-mode-wrapper');
+        modeWrappers.forEach(wrapper => wrapper.style.display = 'block');
+
+        const difficultySections = document.querySelectorAll('.difficulty-options');
+        difficultySections.forEach(section => section.style.display = 'none');
     } else {
         landingPage.style.display = 'block';
         gamePage.style.display = 'none';
-
-        // Restore game modes and hide any difficulty options
-        const modeWrappers = document.querySelectorAll('.game-mode-wrapper');
-        modeWrappers.forEach(wrapper => {
-            wrapper.style.display = 'block';
-        });
-
-        const difficultySections = document.querySelectorAll('.difficulty-options');
-        difficultySections.forEach(section => {
-            section.style.display = 'none';
-        });
     }
 }
-
 
 function flipCard(id) {
     const card = cards.find(c => c.id === id);
@@ -196,16 +233,13 @@ function checkMatch() {
 
     setTimeout(() => {
         if (isMatch) {
-            // Mark cards as matched and apply green color
             card1.isMatched = true;
             card2.isMatched = true;
             matchedPairs++;
 
-            // Trigger the match effect by adding the 'matched' class
             updateCardDisplay(card1.id);
             updateCardDisplay(card2.id);
 
-            // Add the 'matched' class for animation and green color
             const card1Element = document.querySelector(`[data-id="${card1.id}"]`);
             const card2Element = document.querySelector(`[data-id="${card2.id}"]`);
             if (card1Element && card2Element) {
@@ -213,12 +247,10 @@ function checkMatch() {
                 card2Element.classList.add('matched');
             }
 
-            // Check if all pairs are matched
             if (matchedPairs === emojis.length) {
                 endGame();
             }
         } else {
-            // If not matched, flip the cards back
             card1.isFlipped = false;
             card2.isFlipped = false;
             updateCardDisplay(card1.id);
@@ -241,25 +273,23 @@ function updateStats() {
     const moveDisplay = document.getElementById('moves');
     const timeDisplay = document.getElementById('time');
     if (moveDisplay) moveDisplay.textContent = moves;
-    if (timeDisplay) timeDisplay.textContent = timer; // Display the current time
+    if (timeDisplay) timeDisplay.textContent = timer;
 }
 
 function startTimer() {
     clearInterval(timerInterval);
-    
+
     if (currentGameMode === 'time-trial') {
-        // Countdown timer for Time Trial mode
         timerInterval = setInterval(() => {
             if (timer > 0) {
                 timer--;
                 updateStats();
             } else {
                 clearInterval(timerInterval);
-                endGameEarly("Time's up!"); // End game if time is up
+                endGameEarly("Time's up!");
             }
         }, 1000);
     } else {
-        // Count-up timer for other modes (Classic, Animals, Food, Places)
         timerInterval = setInterval(() => {
             timer++;
             updateStats();
@@ -295,7 +325,8 @@ function showWinMessage() {
 }
 
 function endGame() {
-    clearInterval(timerInterval); // Stop the timer
+    gameHasEnded = true;
+    clearInterval(timerInterval);
     const container = document.getElementById('gameContainer');
     if (!container) return;
 
@@ -310,24 +341,31 @@ function endGame() {
 }
 
 function resetGame() {
-    // Reset all game elements
+    gameHasEnded = false;
     clearInterval(timerInterval);
-    timer = currentGameMode === 'time-trial' ? initialTimer : 0;  // Reset the timer based on game mode
-    moves = 0;  // Reset moves count
-    matchedPairs = 0;  // Reset matched pairs count
-    initializeGame();  // Reinitialize the game
+    timer = currentGameMode === 'time-trial' ? initialTimer : 0;
+    moves = 0;
+    matchedPairs = 0;
 
-    // Re-enable card flips once the game is reset
-    const gameContainer = document.getElementById('gameContainer');
-    const allCards = gameContainer.querySelectorAll('.card');
-    allCards.forEach(card => card.style.pointerEvents = 'auto');  // Enable card clicks
+    // Show the game page again if needed
+    document.getElementById('landing-page').classList.add('hidden');
+    document.getElementById('game-page').classList.remove('hidden');
 
-    // Restart the timer
-    startTimer();
+    // Clear any win or game over messages
+    document.querySelectorAll('.win-message').forEach(msg => msg.remove());
+
+    // Run countdown, then initialize and reveal cards
+    showCountdown(() => {
+        initializeGame();
+        revealCards();   // briefly show cards before starting
+        startTimer();
+    });
 }
 
+
 function endGameEarly(message = "Time's up!") {
-    clearInterval(timerInterval);  // Stop the timer
+    gameHasEnded = true;
+    clearInterval(timerInterval);
     const winMessage = document.createElement('div');
     winMessage.className = 'win-message';
     winMessage.innerHTML = `${message}<br>Game Over!`;
@@ -337,13 +375,11 @@ function endGameEarly(message = "Time's up!") {
         winMessage.classList.add('show');
     });
 
-    // Disable further card flips when time is up
     const gameContainer = document.getElementById('gameContainer');
     const allCards = gameContainer.querySelectorAll('.card');
-    allCards.forEach(card => card.style.pointerEvents = 'none');  // Disable card clicks
+    allCards.forEach(card => card.style.pointerEvents = 'none');
 
     setTimeout(() => {
-        // Message will disappear after 2 seconds
         winMessage.remove();
     }, 2000);
 }

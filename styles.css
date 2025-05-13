@@ -1,3 +1,14 @@
+body {
+            background-image: url('Images/bg1.gif');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+}
+
 /* Game container */
 .game-container {
     display: grid;
@@ -7,6 +18,10 @@
     margin: 0 auto;
     padding: 20px;
     border-radius: 10px;
+}
+
+#game-page {
+    margin-top: 150px;
 }
 
 /* Card styles */
@@ -151,17 +166,19 @@ h1 {
     text-transform: uppercase;
     letter-spacing: 2px;
     color: #000000;
-    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5), -1px -1px 2px rgba(0, 0, 0, 0.3);
-    background-color: white;
     padding: 40px 20px 20px 20px;
     border-radius: 15px;
     position: relative;
     margin: 20px auto;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     display: block;
     width: fit-content;
     text-align: center;
 }
+
+#name {
+    top: 60px;
+}
+
 
 /* Media Queries for responsiveness */
 @media (max-width: 576px) {
@@ -204,18 +221,30 @@ h1 {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: rgba(255, 255, 255, 0.9);
-    padding: 20px 40px;
-    border-radius: 10px;
-    font-size: 2em;
+    background: linear-gradient(135deg, #ff94a4, #ff5f6d);
+    padding: 30px 50px;
+    border-radius: 20px;
+    font-size: 2.5em;
+    font-family: 'Copperplate', fantasy;
     font-weight: bold;
-    color: #000;
+    color: #fff;
     text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
     z-index: 1000;
     display: none;
-    font-family: 'Copperplate', fantasy;
+    letter-spacing: 1.5px;
+    animation: pop-in 0.5s ease-in-out forwards;
+    text-shadow:
+                -2px -2px 0 #000,
+                2px -2px 0 #000,
+                -2px 2px 0 #000,
+                2px 2px 0 #000,
+                -3px 0px 0 #000,
+                3px 0px 0 #000,
+                0px -3px 0 #000,
+                0px 3px 0 #000;
 }
+
 
 .win-message.show {
     display: block;
@@ -225,10 +254,13 @@ h1 {
 /* Confetti Elements */
 .confetti {
     position: fixed;
+    top: 50%;
+    left: 50%;
     width: 10px;
     height: 10px;
     background-color: #ff0;
     clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    transform: translate(-50%, -50%);
     animation: confetti 2s linear forwards;
     z-index: 999;
 }
@@ -255,6 +287,13 @@ h1 {
     padding: 15px;
     font-size: 1.2em;
     transition: transform 0.2s, background-color 0.2s;
+    font-family: 'Fredoka One', cursive;
+}
+
+.difficulty-options button {
+    transition: transform 0.2s;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1em;
 }
 
 .game-mode-btn:hover {
@@ -299,4 +338,119 @@ h1 {
 
 .difficulty-options button:hover {
     transform: scale(1.02);
+}
+
+#countdown-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    font-size: 5rem;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+#countdown-text {
+    animation: pop 0.5s ease-in-out;
+}
+
+@keyframes pop {
+    0% { transform: scale(0.5); opacity: 0; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+.logo-text {
+    font-family: 'Fredoka One', cursive;
+    color: #FF6B6B;
+    text-shadow: 3px 3px 0px #4ECDC4;
+    font-size: 3.5rem;
+    letter-spacing: 2px;
+    transition: transform 0.3s ease;
+}
+
+.logo-text:hover {
+    transform: scale(1.05);
+}
+/* Global button styles */
+button, .btn {
+    font-family: 'Fredoka One', cursive;
+    letter-spacing: 1px;
+    transition: transform 0.2s ease;
+}
+
+button:hover, .btn:hover {
+    transform: scale(1.05);
+}
+
+/* Specific button size adjustments */
+.game-mode-btn {
+    font-size: 1.2rem;
+}
+
+.difficulty-btn {
+    font-size: 1.2rem;
+}
+
+.btn-play, .btn-credits {
+    font-size: 1.3rem;
+}
+
+.start-btn, .back-btn, .restart-btn {
+    font-size: 1.2rem;
+}
+
+.game-title {
+    font-family: 'Fredoka One', cursive;
+    color: #FF6B6B;
+    text-shadow: 3px 3px 0px #4ECDC4;
+    font-size: 2.5rem;
+    letter-spacing: 2px;
+    text-align: center;
+    padding: 15px;
+    margin-bottom: 20px;
+    background-color: #FF6B6B;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.game-title::before {
+    content: attr(data-emojis);
+    position: absolute;
+    top: -25px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 1.5rem;
+}
+
+.moves-time-display {
+    font-family: 'Fredoka One', cursive;
+    background-color: white;
+    border-radius: 15px;
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+}
+
+/* Add animation for the emojis */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+    100% { transform: translateY(0px); }
+}
+
+.game-title::before {
+    animation: float 3s ease-in-out infinite;
+}
+
+h5 {
+    font-family: 'Fredoka One', cursive;
+    color: #FF6B6B;
+    text-shadow: 2px 2px 0px #4ECDC4;
 }

@@ -55,6 +55,8 @@ function initializeGame() {
     startTimer();
 }
 
+const extremeMoveLimit = 20;
+
 function toggleDifficulty(mode) {
     const modeWrappers = document.querySelectorAll('.game-mode-wrapper');
     const difficultySections = document.querySelectorAll('.difficulty-options');
@@ -221,11 +223,25 @@ function flipCard(id) {
     }
 
     if (flippedCards.length === 2) {
-        moves++;
+        moves++; // ✅ Count each pair of flips as one move
         updateStats();
-        checkMatch();
+
+        if (currentDifficulty === 'extreme' && moves >= extremeMoveLimit) {
+            // Let the last pair be processed first before ending
+            setTimeout(() => {
+                checkMatch();
+                endGameEarly("Move limit exceeded!");
+            }, flipDelay);
+        } else {
+            setTimeout(() => {
+                checkMatch();
+            }, flipDelay);
+        }
     }
 }
+
+
+
 
 function checkMatch() {
     const [card1, card2] = flippedCards;
@@ -272,9 +288,22 @@ function updateCardDisplay(id) {
 function updateStats() {
     const moveDisplay = document.getElementById('moves');
     const timeDisplay = document.getElementById('time');
-    if (moveDisplay) moveDisplay.textContent = moves;
-    if (timeDisplay) timeDisplay.textContent = timer;
+
+    if (moveDisplay) {
+        if (currentDifficulty === 'extreme') {
+            const remainingMoves = extremeMoveLimit - moves;
+            moveDisplay.textContent = `Moves Left: ${remainingMoves}`;
+        } else {
+            moveDisplay.textContent = `Moves: ${moves}`;
+        }
+    }
+
+    if (timeDisplay) {
+        timeDisplay.textContent = `Time: ${timer}s`;
+    }
 }
+
+
 
 function startTimer() {
     clearInterval(timerInterval);

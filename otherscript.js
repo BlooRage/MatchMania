@@ -46,3 +46,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+
+  document.getElementById("returnToStart").addEventListener("click", function () {
+    document.getElementById("gameModes").style.display = "none";
+    document.getElementById("startButtons").style.display = "block";
+  });
+
+  document.getElementById("playBtn").addEventListener("click", function () {
+    document.getElementById("startButtons").style.display = "none";
+    document.getElementById("gameModes").style.display = "block";
+  });
+
+
